@@ -1,0 +1,265 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Amazonia — Administration</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=EB+Garamond:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#0a1512; --bg-1:#0f1e19; --bg-2:#15281f; --bg-3:#1b3226;
+    --line:rgba(244,241,233,.10); --line-strong:rgba(244,241,233,.20);
+    --text:#f4f1e6; --text-muted:#a7b8ac; --text-faint:#718077;
+    --accent:#f0a83c; --accent-strong:#ffc668; --accent-ink:#23150a;
+    --moss:#5fb586; --danger:#ff8a8a;
+    --font-display:"Cinzel",Georgia,serif; --font-body:"EB Garamond",Garamond,Georgia,serif;
+  }
+  *{ box-sizing:border-box; }
+  body{ margin:0; min-height:100vh; background:var(--bg); color:var(--text); font-family:var(--font-body); font-size:16px; }
+  h1,h2,h3{ font-family:var(--font-display); margin:0; }
+  .wrap{ max-width:1100px; margin:0 auto; padding:0 24px; }
+
+  /* login */
+  .login-screen{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
+  .login-box{ width:100%; max-width:380px; background:var(--bg-2); border:1px solid var(--line-strong); border-radius:16px; padding:36px 32px; box-shadow:0 30px 70px rgba(0,0,0,.4); }
+  .login-box h1{ font-size:22px; text-align:center; margin-bottom:6px; }
+  .login-box .sub{ text-align:center; color:var(--text-muted); font-size:14px; margin-bottom:26px; }
+  .field{ margin-bottom:16px; }
+  .field label{ display:block; font-size:12.5px; color:var(--text-muted); margin-bottom:6px; letter-spacing:.03em; text-transform:uppercase; font-family:var(--font-display); }
+  .field input{ width:100%; font-family:inherit; font-size:16px; padding:12px 14px; border-radius:9px; border:1px solid var(--line-strong); background:var(--bg-1); color:var(--text); letter-spacing:2px; text-align:center; }
+  .field input[type="password"]{ letter-spacing:normal; text-align:left; }
+  .remember-row{ display:flex; align-items:center; gap:8px; margin:4px 0 18px; font-size:13.5px; color:var(--text-muted); }
+  .btn{ display:block; width:100%; font-family:var(--font-display); font-size:13.5px; letter-spacing:.06em; text-transform:uppercase; padding:13px; border-radius:999px; border:none; background:var(--accent); color:var(--accent-ink); font-weight:600; cursor:pointer; }
+  .btn:hover{ background:var(--accent-strong); }
+  .btn:disabled{ opacity:.6; cursor:default; }
+  .btn-link{ background:none; border:none; color:var(--text-faint); font-size:13px; text-decoration:underline; cursor:pointer; margin-top:14px; display:block; width:100%; text-align:center; font-family:var(--font-body); }
+  .login-error{ color:var(--danger); font-size:13.5px; text-align:center; margin:0 0 14px; min-height:0; }
+  .login-error:empty{ display:none; }
+  .login-hint{ text-align:center; font-size:12.5px; color:var(--text-faint); margin-top:16px; line-height:1.5; }
+
+  /* dashboard */
+  .dash{ display:none; padding:32px 0 60px; }
+  .dash.active{ display:block; }
+  .login-screen.hidden{ display:none; }
+  .dash-header{ display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:28px; flex-wrap:wrap; }
+  .dash-header h1{ font-size:24px; }
+  .dash-stats{ display:flex; gap:14px; margin-bottom:24px; flex-wrap:wrap; }
+  .stat-pill{ background:var(--bg-2); border:1px solid var(--line); border-radius:12px; padding:12px 18px; font-size:13.5px; color:var(--text-muted); }
+  .stat-pill b{ color:var(--accent-strong); font-family:var(--font-display); font-size:16px; margin-right:6px; }
+  .logout-btn{ background:none; border:1px solid var(--line-strong); color:var(--text-muted); font-family:var(--font-body); font-size:13px; padding:8px 16px; border-radius:999px; cursor:pointer; }
+  .logout-btn:hover{ color:var(--text); border-color:var(--text); }
+
+  .table-wrap{ overflow-x:auto; border:1px solid var(--line); border-radius:14px; background:var(--bg-2); }
+  table{ width:100%; border-collapse:collapse; font-size:14px; min-width:820px; }
+  th{ text-align:left; font-family:var(--font-display); font-size:11.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--text-faint); padding:14px 16px; border-bottom:1px solid var(--line-strong); white-space:nowrap; }
+  td{ padding:13px 16px; border-bottom:1px solid var(--line); color:var(--text-muted); vertical-align:top; }
+  tr:last-child td{ border-bottom:none; }
+  td.name{ color:var(--text); font-weight:600; }
+  td.addr{ max-width:220px; }
+  .status-select{ font-family:var(--font-body); font-size:13px; padding:7px 10px; border-radius:8px; border:1px solid var(--line-strong); background:var(--bg-1); color:var(--text); }
+  .status-select.expediee{ border-color:var(--moss); color:var(--moss); }
+  .empty-row{ text-align:center; padding:40px; color:var(--text-faint); }
+  .dash-loading{ text-align:center; padding:60px; color:var(--text-faint); }
+</style>
+
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <h1>Amazonia</h1>
+    <p class="sub">Administration — accès réservé</p>
+
+    <div id="step1">
+      <p class="login-error" id="step1Error"></p>
+      <form id="passwordForm">
+        <div class="field">
+          <label for="passwordInput">Mot de passe</label>
+          <input type="password" id="passwordInput" autocomplete="current-password" required>
+        </div>
+        <button type="submit" class="btn" id="step1Btn">Continuer</button>
+      </form>
+    </div>
+
+    <div id="step2" style="display:none;">
+      <p class="login-error" id="step2Error"></p>
+      <p class="login-hint" style="margin-top:0; margin-bottom:18px;">Un code à 6 chiffres a été envoyé par email.</p>
+      <form id="codeForm">
+        <div class="field">
+          <label for="codeInput">Code de vérification</label>
+          <input type="text" id="codeInput" inputmode="numeric" maxlength="6" autocomplete="one-time-code" required>
+        </div>
+        <div class="remember-row">
+          <input type="checkbox" id="rememberCheck" checked>
+          <label for="rememberCheck" style="margin:0; text-transform:none; font-family:inherit; font-size:13.5px; letter-spacing:0;">Se souvenir de cet ordinateur pendant 30 jours</label>
+        </div>
+        <button type="submit" class="btn" id="step2Btn">Se connecter</button>
+      </form>
+      <button class="btn-link" id="backToStep1">← Revenir en arrière</button>
+    </div>
+  </div>
+</div>
+
+<div class="dash" id="dash">
+  <div class="wrap">
+    <div class="dash-header">
+      <h1>Précommandes</h1>
+      <button class="logout-btn" id="logoutBtn">Se déconnecter</button>
+    </div>
+    <div class="dash-stats" id="dashStats"></div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Prénom</th>
+            <th>Nom</th>
+            <th>Email</th>
+            <th>Adresse postale</th>
+            <th>Don</th>
+            <th>Total</th>
+            <th>Statut</th>
+          </tr>
+        </thead>
+        <tbody id="ordersBody">
+          <tr><td colspan="8" class="dash-loading">Chargement…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var API = 'https://amazonia-api.tema-holding.com';
+
+  function api(path, opts){
+    opts = opts || {};
+    opts.credentials = 'include';
+    opts.headers = Object.assign({ 'Content-Type': 'application/json' }, opts.headers || {});
+    return fetch(API + path, opts).then(function(res){
+      return res.json().then(function(data){ return { ok: res.ok, status: res.status, data: data }; });
+    });
+  }
+
+  var loginScreen = document.getElementById('loginScreen');
+  var dash = document.getElementById('dash');
+  var step1 = document.getElementById('step1');
+  var step2 = document.getElementById('step2');
+
+  function showDash(){
+    loginScreen.classList.add('hidden');
+    dash.classList.add('active');
+    loadOrders();
+  }
+
+  // check existing session (remembered device)
+  api('/admin_check.php').then(function(r){
+    if(r.data && r.data.authenticated){ showDash(); }
+  });
+
+  document.getElementById('passwordForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var btn = document.getElementById('step1Btn');
+    var err = document.getElementById('step1Error');
+    err.textContent = '';
+    btn.disabled = true; btn.textContent = 'Vérification…';
+    api('/admin_login_step1.php', { method:'POST', body: JSON.stringify({ password: document.getElementById('passwordInput').value }) })
+      .then(function(r){
+        if(!r.ok){ throw new Error(r.status === 429 ? 'Trop de tentatives, réessayez plus tard.' : 'Mot de passe incorrect.'); }
+        step1.style.display = 'none';
+        step2.style.display = 'block';
+        document.getElementById('codeInput').focus();
+      })
+      .catch(function(e){ err.textContent = e.message; })
+      .finally(function(){ btn.disabled = false; btn.textContent = 'Continuer'; });
+  });
+
+  document.getElementById('backToStep1').addEventListener('click', function(){
+    step2.style.display = 'none';
+    step1.style.display = 'block';
+    document.getElementById('step2Error').textContent = '';
+  });
+
+  document.getElementById('codeForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var btn = document.getElementById('step2Btn');
+    var err = document.getElementById('step2Error');
+    err.textContent = '';
+    btn.disabled = true; btn.textContent = 'Connexion…';
+    api('/admin_login_step2.php', {
+      method:'POST',
+      body: JSON.stringify({ code: document.getElementById('codeInput').value, remember: document.getElementById('rememberCheck').checked })
+    })
+      .then(function(r){
+        if(!r.ok){ throw new Error('Code invalide ou expiré.'); }
+        showDash();
+      })
+      .catch(function(e){ err.textContent = e.message; })
+      .finally(function(){ btn.disabled = false; btn.textContent = 'Se connecter'; });
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', function(){
+    api('/admin_logout.php', { method:'POST' }).finally(function(){ location.reload(); });
+  });
+
+  function esc(s){
+    var d = document.createElement('div');
+    d.textContent = s == null ? '' : s;
+    return d.innerHTML;
+  }
+
+  function formatDate(iso){
+    try {
+      var d = new Date(iso.replace(' ', 'T'));
+      return d.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric' }) + ' ' + d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+    } catch(e){ return iso; }
+  }
+
+  function loadOrders(){
+    api('/admin_orders.php').then(function(r){
+      if(!r.ok){ throw new Error('load_failed'); }
+      renderOrders(r.data.orders || []);
+    }).catch(function(){
+      document.getElementById('ordersBody').innerHTML = '<tr><td colspan="8" class="empty-row">Erreur de chargement.</td></tr>';
+    });
+  }
+
+  function renderOrders(orders){
+    var stats = document.getElementById('dashStats');
+    var totalDons = orders.reduce(function(s,o){ return s + parseInt(o.don_montant || 0, 10); }, 0);
+    stats.innerHTML =
+      '<div class="stat-pill"><b>' + orders.length + '</b>précommandes</div>' +
+      '<div class="stat-pill"><b>' + totalDons.toLocaleString('fr-FR') + ' €</b>reversés (dons)</div>' +
+      '<div class="stat-pill"><b>' + orders.filter(function(o){ return o.statut === 'Commande passee'; }).length + '</b>à expédier</div>';
+
+    var body = document.getElementById('ordersBody');
+    if(!orders.length){
+      body.innerHTML = '<tr><td colspan="8" class="empty-row">Aucune précommande pour le moment.</td></tr>';
+      return;
+    }
+    body.innerHTML = orders.map(function(o){
+      return '<tr data-id="' + o.id + '">' +
+        '<td>' + esc(formatDate(o.created_at)) + '</td>' +
+        '<td class="name">' + esc(o.prenom) + '</td>' +
+        '<td class="name">' + esc(o.nom) + '</td>' +
+        '<td>' + esc(o.email) + '</td>' +
+        '<td class="addr">' + esc(o.adresse) + ', ' + esc(o.code_postal) + ' ' + esc(o.ville) + ', ' + esc(o.pays) + '</td>' +
+        '<td>' + (o.don_montant > 0 ? esc(o.don_montant) + ' €' : '—') + '</td>' +
+        '<td>' + esc(o.total_montant) + ' €</td>' +
+        '<td><select class="status-select' + (o.statut === 'Commande expediee' ? ' expediee' : '') + '">' +
+          '<option value="Commande passee"' + (o.statut === 'Commande passee' ? ' selected' : '') + '>Commande passée</option>' +
+          '<option value="Commande expediee"' + (o.statut === 'Commande expediee' ? ' selected' : '') + '>Commande expédiée</option>' +
+        '</select></td>' +
+      '</tr>';
+    }).join('');
+
+    body.querySelectorAll('.status-select').forEach(function(sel){
+      sel.addEventListener('change', function(){
+        var row = sel.closest('tr');
+        var id = row.getAttribute('data-id');
+        sel.classList.toggle('expediee', sel.value === 'Commande expediee');
+        api('/admin_orders.php', { method:'POST', body: JSON.stringify({ id: parseInt(id,10), statut: sel.value }) })
+          .catch(function(){ alert('La mise à jour a échoué, réessayez.'); });
+      });
+    });
+  }
+})();
+</script>
