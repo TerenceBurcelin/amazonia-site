@@ -366,6 +366,15 @@
   .order-line{ display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px dashed var(--line); font-size:14.5px; color:var(--text-muted); }
   .order-line.total{ font-family:var(--font-display); font-weight:600; color:var(--accent-strong); font-size:18px; border-bottom:none; padding-top:14px; }
   .modal-note{ font-size:12.5px; color:var(--text-faint); font-style:italic; margin-bottom:22px; line-height:1.55; }
+  .order-form{ display:flex; flex-direction:column; gap:12px; }
+  .order-form-row{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .order-form input{ font-family:inherit; font-size:14.5px; padding:11px 14px; border-radius:8px; border:1px solid var(--line-strong); background:var(--bg-1); color:var(--text); width:100%; }
+  .order-form input::placeholder{ color:var(--text-faint); }
+  .order-form input:invalid{ box-shadow:none; }
+  .order-error{ color:#ff8a8a; font-size:13px; margin:0; min-height:0; }
+  .order-error:empty{ display:none; }
+  .order-success{ display:none; text-align:center; }
+  .order-success-check{ font-size:40px; margin-bottom:12px; color:var(--accent-strong); }
 
   /* ---- hero photo ---- */
   .hero-photo{ position:absolute; inset:-12% 0; background-size:cover; background-position:center 30%; will-change:transform; }
@@ -773,14 +782,36 @@
 <div class="modal-overlay" id="orderModal">
   <div class="modal-box">
     <button class="modal-close" data-close="orderModal">✕</button>
-    <h3>Confirmer votre précommande</h3>
-    <div class="order-lines">
-      <div class="order-line"><span>Amazonia — le jeu</span><span>20 €</span></div>
-      <div class="order-line" id="orderDonLine" style="display:none;"><span>Don au projet</span><span id="orderDonAmount">0 €</span></div>
-      <div class="order-line total"><span>Total</span><span id="orderTotal">20 €</span></div>
+    <div id="orderFormView">
+      <h3>Confirmer votre précommande</h3>
+      <div class="order-lines">
+        <div class="order-line"><span>Amazonia — le jeu</span><span>20 €</span></div>
+        <div class="order-line" id="orderDonLine" style="display:none;"><span>Don au projet</span><span id="orderDonAmount">0 €</span></div>
+        <div class="order-line total"><span>Total</span><span id="orderTotal">20 €</span></div>
+      </div>
+      <form id="orderForm" class="order-form">
+        <div class="order-form-row">
+          <input type="text" name="prenom" placeholder="Prénom" autocomplete="given-name" required>
+          <input type="text" name="nom" placeholder="Nom" autocomplete="family-name" required>
+        </div>
+        <input type="email" name="email" placeholder="Email" autocomplete="email" required>
+        <input type="text" name="adresse" placeholder="Adresse" autocomplete="street-address" required>
+        <div class="order-form-row">
+          <input type="text" name="code_postal" placeholder="Code postal" autocomplete="postal-code" required>
+          <input type="text" name="ville" placeholder="Ville" autocomplete="address-level2" required>
+        </div>
+        <input type="text" name="pays" placeholder="Pays" autocomplete="country-name" value="France" required>
+        <p class="modal-note">Ceci est une précommande&nbsp;: votre carte est débitée aujourd'hui, votre exemplaire vous sera livré pour Noël 2026. Le module de paiement sécurisé sera intégré à cette étape.</p>
+        <p class="order-error" id="orderError"></p>
+        <button type="submit" class="btn btn-primary btn-block" id="orderSubmitBtn">Confirmer la précommande</button>
+      </form>
     </div>
-    <p class="modal-note">Ceci est une précommande&nbsp;: votre carte est débitée aujourd'hui, votre exemplaire vous sera livré pour Noël 2026. Le module de paiement sécurisé sera intégré à cette étape.</p>
-    <button class="btn btn-primary btn-block" data-close="orderModal">Fermer</button>
+    <div id="orderSuccessView" class="order-success">
+      <div class="order-success-check">✓</div>
+      <h3>Précommande confirmée&nbsp;!</h3>
+      <p class="modal-note" style="text-align:center;">Merci&nbsp;! Un email de confirmation vous sera envoyé. Votre exemplaire est prévu pour Noël 2026.</p>
+      <button class="btn btn-primary btn-block" data-close="orderModal">Fermer</button>
+    </div>
   </div>
 </div>
 
@@ -861,12 +892,54 @@
     document.querySelectorAll('.modal-overlay.open').forEach(function(ov){ closeModal(ov.id, true); });
   });
   document.querySelectorAll('.open-video-btn').forEach(function(btn){ btn.addEventListener('click', function(){ openModal('videoModal'); }); });
+  var AMZ_API = 'https://amazonia-api.tema-holding.com';
   document.getElementById('openOrder').addEventListener('click', function(){
     document.getElementById('orderTotal').textContent = document.getElementById('totalLabel').textContent;
     var donVal = document.getElementById('donLine').style.display !== 'none';
     document.getElementById('orderDonLine').style.display = donVal ? 'flex' : 'none';
     document.getElementById('orderDonAmount').textContent = document.getElementById('donAmountLabel').textContent;
+    document.getElementById('orderFormView').style.display = 'block';
+    document.getElementById('orderSuccessView').style.display = 'none';
+    document.getElementById('orderError').textContent = '';
+    document.getElementById('orderForm').reset();
+    document.querySelector('#orderForm [name="pays"]').value = 'France';
     openModal('orderModal');
+  });
+  document.getElementById('orderForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var form = e.target;
+    var btn = document.getElementById('orderSubmitBtn');
+    var errEl = document.getElementById('orderError');
+    errEl.textContent = '';
+    btn.disabled = true;
+    btn.textContent = 'Envoi en cours…';
+    var payload = {
+      nom: form.nom.value,
+      prenom: form.prenom.value,
+      email: form.email.value,
+      adresse: form.adresse.value,
+      code_postal: form.code_postal.value,
+      ville: form.ville.value,
+      pays: form.pays.value,
+      don_montant: don
+    };
+    fetch(AMZ_API + '/order.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(function(res){ return res.json().then(function(data){ return { ok: res.ok, data: data }; }); })
+      .then(function(result){
+        if(!result.ok){ throw new Error(result.data && result.data.error ? result.data.error : 'erreur'); }
+        document.getElementById('orderFormView').style.display = 'none';
+        document.getElementById('orderSuccessView').style.display = 'block';
+      })
+      .catch(function(){
+        errEl.textContent = "Une erreur est survenue. Vérifiez vos informations et réessayez.";
+      })
+      .finally(function(){
+        btn.disabled = false;
+        btn.textContent = 'Confirmer la précommande';
+      });
   });
   document.querySelectorAll('[data-close]').forEach(function(btn){ btn.addEventListener('click', function(){ closeModal(btn.getAttribute('data-close')); }); });
   document.querySelectorAll('.modal-overlay').forEach(function(ov){ ov.addEventListener('click', function(e){ if(e.target===ov) ov.classList.remove('open'); }); });
