@@ -58,6 +58,9 @@
   td.addr{ max-width:220px; }
   .status-select{ font-family:var(--font-body); font-size:13px; padding:7px 10px; border-radius:8px; border:1px solid var(--line-strong); background:var(--bg-1); color:var(--text); }
   .status-select.expediee{ border-color:var(--moss); color:var(--moss); }
+  .btn-delete{ display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:8px; border:1px solid var(--line-strong); background:var(--bg-1); color:var(--text-faint); cursor:pointer; }
+  .btn-delete:hover{ color:var(--danger); border-color:var(--danger); }
+  .btn-delete svg{ width:16px; height:16px; }
   .empty-row{ text-align:center; padding:40px; color:var(--text-faint); }
   .dash-loading{ text-align:center; padding:60px; color:var(--text-faint); }
 </style>
@@ -116,10 +119,11 @@
             <th>Don</th>
             <th>Total</th>
             <th>Statut</th>
+            <th></th>
           </tr>
         </thead>
         <tbody id="ordersBody">
-          <tr><td colspan="8" class="dash-loading">Chargement…</td></tr>
+          <tr><td colspan="9" class="dash-loading">Chargement…</td></tr>
         </tbody>
       </table>
     </div>
@@ -232,7 +236,7 @@
 
     var body = document.getElementById('ordersBody');
     if(!orders.length){
-      body.innerHTML = '<tr><td colspan="8" class="empty-row">Aucune précommande pour le moment.</td></tr>';
+      body.innerHTML = '<tr><td colspan="9" class="empty-row">Aucune précommande pour le moment.</td></tr>';
       return;
     }
     body.innerHTML = orders.map(function(o){
@@ -248,6 +252,9 @@
           '<option value="Commande passee"' + (o.statut === 'Commande passee' ? ' selected' : '') + '>Commande passée</option>' +
           '<option value="Commande expediee"' + (o.statut === 'Commande expediee' ? ' selected' : '') + '>Commande expédiée</option>' +
         '</select></td>' +
+        '<td><button class="btn-delete" title="Supprimer" aria-label="Supprimer">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>' +
+        '</button></td>' +
       '</tr>';
     }).join('');
 
@@ -258,6 +265,24 @@
         sel.classList.toggle('expediee', sel.value === 'Commande expediee');
         api('/admin_orders.php', { method:'POST', body: JSON.stringify({ id: parseInt(id,10), statut: sel.value }) })
           .catch(function(){ alert('La mise à jour a échoué, réessayez.'); });
+      });
+    });
+
+    body.querySelectorAll('.btn-delete').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var row = btn.closest('tr');
+        var id = row.getAttribute('data-id');
+        if(!confirm('Supprimer définitivement cette précommande ?')) return;
+        btn.disabled = true;
+        api('/admin_orders.php', { method:'DELETE', body: JSON.stringify({ id: parseInt(id,10) }) })
+          .then(function(r){
+            if(!r.ok){ throw new Error('delete_failed'); }
+            loadOrders();
+          })
+          .catch(function(){
+            alert('La suppression a échoué, réessayez.');
+            btn.disabled = false;
+          });
       });
     });
   }
