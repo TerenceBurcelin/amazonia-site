@@ -923,20 +923,17 @@
       pays: form.pays.value,
       don_montant: don
     };
-    fetch(AMZ_API + '/order.php', {
+    fetch(AMZ_API + '/create_checkout_session.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     }).then(function(res){ return res.json().then(function(data){ return { ok: res.ok, data: data }; }); })
       .then(function(result){
-        if(!result.ok){ throw new Error(result.data && result.data.error ? result.data.error : 'erreur'); }
-        document.getElementById('orderFormView').style.display = 'none';
-        document.getElementById('orderSuccessView').style.display = 'block';
+        if(!result.ok || !result.data.url){ throw new Error(result.data && result.data.error ? result.data.error : 'erreur'); }
+        window.location.href = result.data.url;
       })
       .catch(function(){
         errEl.textContent = "Une erreur est survenue. Vérifiez vos informations et réessayez.";
-      })
-      .finally(function(){
         btn.disabled = false;
         btn.textContent = 'Confirmer la précommande';
       });
