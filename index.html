@@ -220,10 +220,8 @@
   .counter-inline .n{ font-family:var(--font-display); font-weight:700; color:var(--accent-strong); font-variant-numeric:tabular-nums; }
   .counter-inline .c{ font-size:13px; color:var(--text-muted); }
 
-  .pricing-single{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:24px; }
+  .pricing-single{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:24px; align-items:stretch; }
   @media (max-width:900px){ .pricing-single{ grid-template-columns:1fr; } }
-  .pricing-single > *{ height:520px; }
-  @media (max-width:900px){ .pricing-single > *{ height:340px; } }
   .price-card{
     background:var(--bg-2); border:1px solid var(--line); border-radius:var(--radius-lg);
     padding:40px; display:flex; flex-direction:column; justify-content:center; align-items:center;
@@ -235,9 +233,9 @@
   .price-card .btn{ width:100%; }
 
   .price-breakdown{ border-radius:var(--radius-lg); box-shadow:var(--shadow-lg); overflow:hidden; background:var(--paper); }
-  .price-breakdown img{ width:100%; height:100%; object-fit:contain; display:block; }
+  .price-breakdown img{ width:100%; height:auto; aspect-ratio:1122/1402; object-fit:cover; display:block; }
 
-  .price-carousel{ position:relative; border-radius:var(--radius-lg); box-shadow:var(--shadow-lg); overflow:hidden; background:var(--bg-2); }
+  .price-carousel{ position:relative; border-radius:var(--radius-lg); box-shadow:var(--shadow-lg); overflow:hidden; background:var(--bg-2); aspect-ratio:1122/1402; }
   .price-carousel .car-slide{ position:absolute; inset:0; opacity:0; transition:opacity .5s ease; }
   .price-carousel .car-slide.active{ opacity:1; }
   .price-carousel img{ width:100%; height:100%; object-fit:cover; display:block; }
