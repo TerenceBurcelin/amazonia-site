@@ -228,10 +228,10 @@
 
   function renderOrders(orders){
     var stats = document.getElementById('dashStats');
-    var totalDons = orders.reduce(function(s,o){ return s + parseInt(o.don_montant || 0, 10); }, 0);
+    var reservedForNgo = orders.length * 8;
     stats.innerHTML =
       '<div class="stat-pill"><b>' + orders.length + '</b>précommandes</div>' +
-      '<div class="stat-pill"><b>' + totalDons.toLocaleString('fr-FR') + ' €</b>reversés (dons)</div>' +
+      '<div class="stat-pill"><b>' + reservedForNgo.toLocaleString('fr-FR') + ' €</b>réservés aux associations (8&nbsp;€/commande)</div>' +
       '<div class="stat-pill"><b>' + orders.filter(function(o){ return o.statut === 'Commande passee'; }).length + '</b>à expédier</div>';
 
     var body = document.getElementById('ordersBody');
